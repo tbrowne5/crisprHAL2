@@ -137,6 +137,8 @@ if uploaded_file is not None:
         predictions = model.predict(modelinputs)
         #predictionsdf = pd.DataFrame(predictions, index=predictions[:,0])
         output = output_processing(targets,predictions)
+        outputdf = pd.DataFrame.from_dict(output,orient='index')
+        #st.write(outputdf)
         
         output_download(outputdf)
         generate_plot(predictions)
@@ -150,7 +152,5 @@ if uploaded_file is not None:
         #st.write("\n\n\n\n\nALL OUTPUTS:")
         #for item in output:
         #    st.write(" sgRNA: " + str(item[0:20]) + ", score: " + str(output[item]))
-        outputdf = pd.DataFrame.from_dict(output,orient='index')
-        #st.write(outputdf)
     else:
         st.write("No valid sgRNA targets found.")
