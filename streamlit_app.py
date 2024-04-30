@@ -17,6 +17,14 @@ hide_github_icon = """
 """
 st.markdown(hide_github_icon, unsafe_allow_html=True)
 
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
 def load_model():
     model = tf.keras.models.load_model('Citro_TevSpCas9.h5')
     return model
@@ -85,7 +93,7 @@ def output_download(df):
 
 def generate_plot(preds):
     data = np.array(preds)
-    st.write(np.max(data))
+    #st.write(np.max(data))
 
     # Create a density plot using Seaborn
     fig2, ax2 = plt.subplots()
