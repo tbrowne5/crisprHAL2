@@ -153,7 +153,7 @@ uploaded_file = st.file_uploader("Upload a FASTA file", type=["fasta","txt"])
 
 option = st.sidebar.selectbox(
     'Select the nuclease:',
-    ('TevSpCas9') #, 'SpCas9', 'eSpCas9')
+    ('TevSpCas9', 'Coming soon')
 )
 
 crisprHALtevspcas9info = """
