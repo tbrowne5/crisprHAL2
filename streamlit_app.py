@@ -10,13 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import gaussian_kde
 
-hide_github_icon = """
-#GithubIcon {
-  visibility: hidden;
-}
-"""
-st.markdown(hide_github_icon, unsafe_allow_html=True)
-
 hide_streamlit_style = """
 <style>
 #MainMenu {visibility: hidden;}
@@ -160,7 +153,7 @@ uploaded_file = st.file_uploader("Upload a FASTA file", type=["fasta","txt"])
 
 option = st.sidebar.selectbox(
     'Select the nuclease:',
-    ('TevSpCas9', 'SpCas9', 'eSpCas9')
+    ('TevSpCas9') #, 'SpCas9', 'eSpCas9')
 )
 
 crisprHALtevspcas9info = """
@@ -205,7 +198,7 @@ footer = """
     background-color: #00000D;      /* Colour for background */
     text-align: left;          /* Align text inside the footer to the right */
     padding-left: 350px;        /* Left padding for the text */
-    padding-right: 25px;        /* Right padding for the text */
+    padding-right: 75px;        /* Right padding for the text */
     font-size: 1em;
     line-height: 25px;            /* Center text vertically */
     overflow: hidden;
