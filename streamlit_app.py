@@ -1,3 +1,9 @@
+# TO BE DONE:
+# • Implement options for different models with accommodation for 43nt inputs & 43x5 dimension inputs (Melting temperature)
+# • Add an option in the sidebar to remove duplicate sgRNAs or sgRNAs with 18/20 (PAM distal) matches
+# • Add an option to check for sgRNA target sites in circular segments of DNA
+# • Add an option to display the lowest predicted activity sgRNAs instead
+# • Add a warning for trying to predict X number of sgRNA activites (likely >50k)
 
 import streamlit as st
 from Bio import SeqIO
@@ -44,8 +50,7 @@ def find_sgRNA_sequences(fasta_content):
     # Assuming the sgRNA targets are to be 20 nucleotides long
     target_length = 28
     targets = []
-
-    # NEED TO IMPLEMENT OPTIONS FOR THE 43NT MODEL INPUT VERSIONS WITH MELTING TEMP VALUES
+    
     for record in SeqIO.parse(fasta_content, "fasta"):
         sequence = str(record.seq)
         # Sliding window to find all possible sgRNA targets of specified length
