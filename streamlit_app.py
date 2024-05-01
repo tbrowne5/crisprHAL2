@@ -45,6 +45,7 @@ def find_sgRNA_sequences(fasta_content):
     target_length = 28
     targets = []
 
+    # NEED TO IMPLEMENT OPTIONS FOR THE 43NT MODEL INPUT VERSIONS WITH MELTING TEMP VALUES
     for record in SeqIO.parse(fasta_content, "fasta"):
         sequence = str(record.seq)
         # Sliding window to find all possible sgRNA targets of specified length
