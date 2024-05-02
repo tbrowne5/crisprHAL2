@@ -1,9 +1,8 @@
 # TO BE DONE:
-# • Implement options for different models with accommodation for 43nt inputs & 43x5 dimension inputs (Melting temperature)
 # • Add an option in the sidebar to remove duplicate sgRNAs or sgRNAs with 18/20 (PAM distal) matches
 # • Add an option to check for sgRNA target sites in circular segments of DNA
 # • Add an option to display the lowest predicted activity sgRNAs instead
-# • Add a warning for trying to predict X number of sgRNA activites (likely >50k)
+# • Add a warning for trying to predict X number of sgRNA activites
 
 import streamlit as st
 from Bio import SeqIO
@@ -24,26 +23,43 @@ footer {visibility: hidden;}
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-def load_model():
-    model = tf.keras.models.load_model('Citro_TevSpCas9.h5')
+def load_model(modelname):
+    model = tf.keras.models.load_model(modelname) #'Citro_TevSpCas9.h5')
     return model
 
-def convert_base(arrayinput):
+def convert_base(arrayinput,padded=False):
     arrayoutput = []
-    for sequence in arrayinput:
-        onehotencoding = []
-        for i in range(len(sequence)):
-            if sequence[i].upper() == "A":
-                onehotencoding.append([1,0,0,0])
-            elif sequence[i].upper() == "C":
-                onehotencoding.append([0,1,0,0])
-            elif sequence[i].upper() == "G":
-                onehotencoding.append([0,0,1,0])
-            elif sequence[i].upper() == "T":
-                onehotencoding.append([0,0,0,1])
-            elif sequence[i].upper() == "N":
-                onehotencoding.append([0,0,0,0])
-        arrayoutput.append(np.array(onehotencoding))
+    if padded:
+        for sequence in arrayinput:
+            sequence = "NNNNNNNNNN" + sequence + "NNNNN"
+            onehotencoding = []
+            for i in range(len(sequence)):
+                if sequence[i].upper() == "T":
+                    onehotencoding.append([1,0,0,0,0])
+                elif sequence[i].upper() == "G":
+                    onehotencoding.append([0,1,0,0,0])
+                elif sequence[i].upper() == "C":
+                    onehotencoding.append([0,0,1,0,0])
+                elif sequence[i].upper() == "A":
+                    onehotencoding.append([0,0,0,1,0])
+                elif sequence[i].upper() == "N":
+                    onehotencoding.append([0,0,0,0,0])
+            arrayoutput.append(np.array(onehotencoding))
+    else:
+        for sequence in arrayinput:
+            onehotencoding = []
+            for i in range(len(sequence)):
+                if sequence[i].upper() == "A":
+                    onehotencoding.append([1,0,0,0])
+                elif sequence[i].upper() == "C":
+                    onehotencoding.append([0,1,0,0])
+                elif sequence[i].upper() == "G":
+                    onehotencoding.append([0,0,1,0])
+                elif sequence[i].upper() == "T":
+                    onehotencoding.append([0,0,0,1])
+                elif sequence[i].upper() == "N":
+                    onehotencoding.append([0,0,0,0])
+            arrayoutput.append(np.array(onehotencoding))
     return np.array(arrayoutput)
 
 def find_sgRNA_sequences(fasta_content):
@@ -90,7 +106,7 @@ def output_download(df):
         mime='text/csv',
     )
 
-def generate_plot(preds):
+def generate_plot(preds, modelname):
     data = np.array(preds)
     #st.write(np.max(data))
 
@@ -119,7 +135,7 @@ def generate_plot(preds):
              fontsize=12, color='red')
     ax2.legend([],[], frameon=False)
     ax2.set_xlim(-3.5, 3.5)
-    ax2.set_title('How to interpret predicted scores')
+    ax2.set_title('How to interpret the ' + str(modelname) + ' model predictions')
     ax2.set_xlabel('Predicted activity scores')
     ax2.set_ylabel('Density')
     
@@ -159,7 +175,7 @@ uploaded_file = st.file_uploader("Upload a FASTA file", type=["fasta","txt"])
 
 option = st.sidebar.selectbox(
     'Select the nuclease:',
-    ('TevSpCas9', 'Coming soon')
+    ('TevSpCas9', 'SpCas9','Citrobacter TevSpCas9')
 )
 
 crisprHALtevspcas9info = """
@@ -168,9 +184,11 @@ Model:
 <br>• Paper: https://www.nature.com/articles/s41467-023-41143-7
 <br>• Source Code: [Github/tbrowne5/crisprHAL](https://github.com/tbrowne5/crisprHAL)
 """
+
 crisprHALsource = """
 Source Code: [Github/tbrowne5/crisprHAL](https://github.com/tbrowne5/crisprHAL)
 """
+
 guoespcas9datasource = """
 Base Model Training Data: <br>• <i>[Escherichia coli, eSpCas9](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA450978)</i>
 """
@@ -179,18 +197,34 @@ crisprHALtevspcas9datasource = """
 Transfer Learning Training Data:<br>• <i>[Escherichia coli, TevSpCas9](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA939699)</i>
 """
 
-#st.sidebar.write('You selected:', option)
+crisprHALspcas9datasource = """
+Transfer Learning Training Data:<br>• <i>[Escherichia coli, SpCas9](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA939699)</i>
+"""
+
+crisprHAL2tevspcas9datasource = """
+Training Data:<br>• <i>Citrobacter rodentium, TevSpCas9</i>
+"""
+
 if option == 'TevSpCas9':
-    #st.sidebar.write('You have selected:', option)
     st.sidebar.title('TevSpCas9 Model')
     st.sidebar.write('Enzyme: TevSpCas9')
     st.sidebar.write('Model: crisprHAL')
     st.sidebar.markdown(crisprHALsource, unsafe_allow_html=True)
-    #st.sidebar.markdown(crisprHALtevspcas9info, unsafe_allow_html=True)
-    #st.sidebar.write('• Training Data: E. coli')
     st.sidebar.markdown(guoespcas9datasource, unsafe_allow_html=True)
     st.sidebar.markdown(crisprHALtevspcas9datasource, unsafe_allow_html=True)
-    #st.sidebar.markdown(crisprHALcitation, unsafe_allow_html=True)
+elif option == 'SpCas9':
+    st.sidebar.title('SpCas9 Model')
+    st.sidebar.write('Enzyme: SpCas9')
+    st.sidebar.write('Model: crisprHAL')
+    st.sidebar.markdown(crisprHALsource, unsafe_allow_html=True)
+    st.sidebar.markdown(guoespcas9datasource, unsafe_allow_html=True)
+    st.sidebar.markdown(crisprHALspcas9datasource, unsafe_allow_html=True)
+elif option == 'Citrobacter TevSpCas9':
+    st.sidebar.title('Citro. TevSpCas9 Model')
+    st.sidebar.write('Enzyme: TevSpCas9')
+    st.sidebar.write('Model: crisprHAL 2.0')
+    st.sidebar.markdown(crisprHAL2tevspcas9datasource, unsafe_allow_html=True)
+    st.sidebar.write('Note: crisprHAL 2.0 is still in development')
 footer = """
 <style>
 .footer {
@@ -232,12 +266,16 @@ if uploaded_file is not None:
     fasta_content = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
     targets = find_sgRNA_sequences(fasta_content)
     if targets:
-        #st.write("Found sgRNA Targets:")
-        #st.write(targets)
-        modelinputs = convert_base(targets)
-        #st.write(modelinputs)
-        #st.write("Running model, please wait...")
-        model = load_model()
+        if option == 'TevSpCas9':
+            modelinputs = convert_base(targets, True)
+            model = load_model('TevSpCas9.h5')
+        elif option == 'SpCas9':
+            modelinputs = convert_base(targets, True)
+            model = load_model('SpCas9.h5')
+        elif option == 'Citrobacter TevSpCas9':
+            modelinputs = convert_base(targets, False)
+            model = load_model('Citro_TevSpCas9.h5')
+
         predictions = model.predict(modelinputs)
         #predictionsdf = pd.DataFrame(predictions, index=predictions[:,0])
         output = output_processing(targets,predictions)
@@ -248,7 +286,7 @@ if uploaded_file is not None:
 
         col1, col2 = st.columns([3,2])
 
-        generate_plot(predictions)
+        generate_plot(predictions, option)
         
         col2.subheader("Best guides found")
         top=1
